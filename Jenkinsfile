@@ -16,23 +16,18 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
 
         stage('Run Tests') {
             steps {
                 withCredentials([file(credentialsId: 'test_data', variable: 'SECRET_FILE_PATH')]) {
-                    sh '''
-                    mkdir -p reports logs
-                    docker run --rm \
-                        -e TEST_DATA_PATH=${TEST_DATA_PATH} \
-                        -v "${SECRET_FILE_PATH}:${TEST_DATA_PATH}" \
-                        -v "$PWD/reports:/app/reports" \
-                        -v "$PWD/logs:/app/logs" \
-                        ${IMAGE_NAME}:${IMAGE_TAG} \
-                        pytest -q tests/test_api_client.py tests/test_api_from_excel.py -s
-                    '''
+                    bat """
+                    if not exist reports mkdir reports
+                    if not exist logs mkdir logs
+                    docker run --rm -e TEST_DATA_PATH=${TEST_DATA_PATH} -v "${SECRET_FILE_PATH}:${TEST_DATA_PATH}" -v "%WORKSPACE%/reports:/app/reports" -v "%WORKSPACE%/logs:/app/logs" ${IMAGE_NAME}:${IMAGE_TAG} pytest -q tests/test_api_client.py tests/test_api_from_excel.py -s
+                    """
                 }
             }
         }
