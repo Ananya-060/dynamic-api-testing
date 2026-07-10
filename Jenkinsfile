@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'dynamic-testing-framework'
         IMAGE_TAG = 'latest'
+        TEST_DATA_PATH = '/app/test_data3.xlsx'
     }
 
     stages {
@@ -15,7 +16,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .' 
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
 
@@ -24,6 +25,7 @@ pipeline {
                 sh '''
                 mkdir -p reports logs
                 docker run --rm \
+                    -e TEST_DATA_PATH=${TEST_DATA_PATH} \
                     -v "$PWD/reports:/app/reports" \
                     -v "$PWD/logs:/app/logs" \
                     ${IMAGE_NAME}:${IMAGE_TAG} \
